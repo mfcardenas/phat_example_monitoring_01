@@ -1,4 +1,4 @@
-# PHAT Example Variation Activity [01]
+# PHAT Example Monitoring Activity [01]
 Patient performs basic activities while suffering tremors in hands and neck.
  
 While performing the activities this is monitored with acceleration sensors in both hands.
