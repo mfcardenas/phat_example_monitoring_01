@@ -18,6 +18,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package phat;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.Date;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -38,8 +45,13 @@ import phat.devices.DevicesAppState;
 import phat.devices.commands.CreateAccelerometerSensorCommand;
 import phat.devices.commands.SetDeviceOnPartOfBodyCommand;
 import phat.environment.SpatialEnvironmentAPI;
+import phat.mobile.servicemanager.server.ServiceManagerServer;
+import phat.mobile.servicemanager.services.Service;
+import phat.sensors.accelerometer.AccelerationData;
 import phat.sensors.accelerometer.AccelerometerControl;
 import phat.sensors.accelerometer.XYAccelerationsChart;
+import phat.sensors.accelerometer.XYShiftingAccelerationsChart;
+import phat.server.PHATServerManager;
 import phat.server.ServerAppState;
 import phat.server.commands.ActivateAccelerometerServerCommand;
 import phat.structures.houses.HouseFactory;
@@ -48,6 +60,9 @@ import phat.structures.houses.commands.CreateHouseCommand;
 import phat.util.Debug;
 import phat.util.SpatialFactory;
 import phat.world.WorldAppState;
+import sim.android.hardware.service.SimSensorEvent;
+
+import javax.swing.*;
 
 /**
  * Class example Test rum simulatios.
@@ -143,16 +158,16 @@ public class ActvityMonitoringDemo implements PHATInitAppListener {
         devicesAppState = new DevicesAppState();
         stateManager.attach(devicesAppState);
 
-        devicesAppState.runCommand(new CreateAccelerometerSensorCommand("sensor1"));
-        devicesAppState.runCommand(new SetDeviceOnPartOfBodyCommand("Patient", "sensor1",
+        devicesAppState.runCommand(new CreateAccelerometerSensorCommand("Sensor1"));
+        devicesAppState.runCommand(new SetDeviceOnPartOfBodyCommand("Patient", "Sensor1",
                 SetDeviceOnPartOfBodyCommand.PartOfBody.Chest));
 
-        devicesAppState.runCommand(new CreateAccelerometerSensorCommand("sensor2"));
-        devicesAppState.runCommand(new SetDeviceOnPartOfBodyCommand("Patient", "sensor2",
+        devicesAppState.runCommand(new CreateAccelerometerSensorCommand("Sensor2"));
+        devicesAppState.runCommand(new SetDeviceOnPartOfBodyCommand("Patient", "Sensor2",
                 SetDeviceOnPartOfBodyCommand.PartOfBody.RightHand));
 
-        devicesAppState.runCommand(new CreateAccelerometerSensorCommand("sensor3"));
-        devicesAppState.runCommand(new SetDeviceOnPartOfBodyCommand("Patient", "sensor3",
+        devicesAppState.runCommand(new CreateAccelerometerSensorCommand("Sensor3"));
+        devicesAppState.runCommand(new SetDeviceOnPartOfBodyCommand("Patient", "Sensor3",
                 SetDeviceOnPartOfBodyCommand.PartOfBody.LeftHand));
 
         try {
@@ -161,12 +176,21 @@ public class ActvityMonitoringDemo implements PHATInitAppListener {
             e.printStackTrace();
         }
 
+        new Thread() { public void run() {
+            launchRemoteXYChart(PHATServerManager.getAddress(),"Remote Chest"
+                    ,"Sensor1");
+            launchRemoteXYChart(PHATServerManager.getAddress(),"Remote Right Hand"
+                    ,"Sensor2");
+            launchRemoteXYChart(PHATServerManager.getAddress(),"Remote Left Hand"
+                    ,"Sensor3");
+        } }.start();
+
         serverAppState = new ServerAppState();
         stateManager.attach(serverAppState);
 
-        serverAppState.runCommand(new ActivateAccelerometerServerCommand("PatientBodyAccel", "sensor1"));
-        serverAppState.runCommand(new ActivateAccelerometerServerCommand("PatientBodyAccel", "sensor2"));
-        serverAppState.runCommand(new ActivateAccelerometerServerCommand("PatientBodyAccel", "sensor3"));
+        serverAppState.runCommand(new ActivateAccelerometerServerCommand("PatientBodyAccel", "Sensor1"));
+        serverAppState.runCommand(new ActivateAccelerometerServerCommand("PatientBodyAccel", "Sensor2"));
+        serverAppState.runCommand(new ActivateAccelerometerServerCommand("PatientBodyAccel", "Sensor3"));
 
         stateManager.attach(new AbstractAppState() {
             PHATApplication app;
@@ -174,7 +198,6 @@ public class ActvityMonitoringDemo implements PHATInitAppListener {
             @Override
             public void initialize(AppStateManager asm, Application aplctn) {
                 app = (PHATApplication) aplctn;
-
             }
 
             float cont = 0f;
@@ -185,29 +208,28 @@ public class ActvityMonitoringDemo implements PHATInitAppListener {
             @Override
             public void update(float f) {
                 if (!init) {
-                    AccelerometerControl ac1 = devicesAppState.getDevice("sensor1")
+                    AccelerometerControl ac1 = devicesAppState.getDevice("Sensor1")
                             .getControl(AccelerometerControl.class);
                     ac1.setMode(AccelerometerControl.AMode.GRAVITY_MODE);
-                    XYAccelerationsChart chart1 = new XYAccelerationsChart("Chart - Acc.", "Local accelerations Chest", "m/s2",
-                            "x,y,z");
-                    ac1.add(chart1);
-                    chart1.showWindow();
+//                    XYAccelerationsChart chart1 = new XYAccelerationsChart("Chart - Acc.", "Local accelerations Chest", "m/s2", "x,y,z");
+//                    ac1.add(chart1);
+//                    chart1.showWindow();
 
-                    AccelerometerControl ac2 = devicesAppState.getDevice("sensor2")
+                    AccelerometerControl ac2 = devicesAppState.getDevice("Sensor2")
                             .getControl(AccelerometerControl.class);
                     ac2.setMode(AccelerometerControl.AMode.GRAVITY_MODE);
-                    XYAccelerationsChart chart2 = new XYAccelerationsChart("Chart - Acc.", "Local accelerations Right Hand", "m/s2",
-                            "x,y,z");
-                    ac2.add(chart2);
-                    chart2.showWindow();
+//                    XYAccelerationsChart chart2 = new XYAccelerationsChart("Chart - Acc.", "Local accelerations Right Hand", "m/s2",
+//                            "x,y,z");
+//                    ac2.add(chart2);
+//                    chart2.showWindow();
 
-                    AccelerometerControl ac3 = devicesAppState.getDevice("sensor3")
+                    AccelerometerControl ac3 = devicesAppState.getDevice("Sensor3")
                             .getControl(AccelerometerControl.class);
                     ac3.setMode(AccelerometerControl.AMode.GRAVITY_MODE);
-                    XYAccelerationsChart chart3 = new XYAccelerationsChart("Chart - Acc.", "Local accelerations Left Hand", "m/s2",
-                            "x,y,z");
-                    ac3.add(chart3);
-                    chart3.showWindow();
+//                    XYAccelerationsChart chart3 = new XYAccelerationsChart("Chart - Acc.", "Local accelerations Left Hand", "m/s2",
+//                            "x,y,z");
+//                    ac3.add(chart3);
+//                    chart3.showWindow();
 
                     init = true;
 
@@ -239,5 +261,70 @@ public class ActvityMonitoringDemo implements PHATInitAppListener {
             }
         });
 
+    }
+
+    /**
+     * launchRemoteXYChart.
+     * @param host host
+     * @param title title
+     * @param sensor sensor
+     */
+    public static void launchRemoteXYChart(final InetAddress host, final String title, final String sensor) {
+        Service taccelService = ServiceManagerServer.getInstance().getServiceManager().getService("PatientBodyAccel", sensor);
+        while (taccelService == null) {
+            // not ready
+            try {
+                Thread.currentThread().sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            taccelService = ServiceManagerServer.getInstance().getServiceManager().getService("PatientBodyAccel", sensor);
+        }
+        final Service accelService = taccelService;
+        new Thread() {
+            public void run() {
+                Socket s = null;
+                try {
+                    final XYShiftingAccelerationsChart chart = new XYShiftingAccelerationsChart(title,
+                            sensor + ": " + title + " accelerations", "m/s2", "x,y,z");
+                    chart.showWindow();
+                    for (int k = 0; k < 5 && s == null; k++)
+                        try {
+                            s = new Socket(host, accelService.getPort());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            try {
+                                Thread.currentThread().sleep(500);
+                            } catch (InterruptedException e1) {
+                                e1.printStackTrace();
+                            }
+
+                        }
+                    BufferedReader is = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                    String objRead = null;
+                    Long lastRead = new Date().getTime();
+                    do {
+                        objRead = is.readLine();
+                        final long interval = new Date().getTime() - lastRead;
+                        lastRead = new Date().getTime();
+                        if (objRead != null && !objRead.isEmpty()) {
+                            final SimSensorEvent sse = SimSensorEvent.fromString(objRead);
+                            if (sse != null) {
+                                SwingUtilities.invokeLater(new Runnable() {
+                                    public void run() {
+                                        AccelerationData ad = new AccelerationData(interval, sse.getValues()[0],
+                                                sse.getValues()[1], sse.getValues()[2]);
+                                        chart.update(null, ad);
+                                        chart.repaint();
+                                    }
+                                });
+                            }
+                        }
+                    } while (objRead != null);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 }
