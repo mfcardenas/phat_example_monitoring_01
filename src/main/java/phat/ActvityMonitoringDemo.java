@@ -211,25 +211,14 @@ public class ActvityMonitoringDemo implements PHATInitAppListener {
                     AccelerometerControl ac1 = devicesAppState.getDevice("Sensor1")
                             .getControl(AccelerometerControl.class);
                     ac1.setMode(AccelerometerControl.AMode.GRAVITY_MODE);
-//                    XYAccelerationsChart chart1 = new XYAccelerationsChart("Chart - Acc.", "Local accelerations Chest", "m/s2", "x,y,z");
-//                    ac1.add(chart1);
-//                    chart1.showWindow();
 
                     AccelerometerControl ac2 = devicesAppState.getDevice("Sensor2")
                             .getControl(AccelerometerControl.class);
                     ac2.setMode(AccelerometerControl.AMode.GRAVITY_MODE);
-//                    XYAccelerationsChart chart2 = new XYAccelerationsChart("Chart - Acc.", "Local accelerations Right Hand", "m/s2",
-//                            "x,y,z");
-//                    ac2.add(chart2);
-//                    chart2.showWindow();
 
                     AccelerometerControl ac3 = devicesAppState.getDevice("Sensor3")
                             .getControl(AccelerometerControl.class);
                     ac3.setMode(AccelerometerControl.AMode.GRAVITY_MODE);
-//                    XYAccelerationsChart chart3 = new XYAccelerationsChart("Chart - Acc.", "Local accelerations Left Hand", "m/s2",
-//                            "x,y,z");
-//                    ac3.add(chart3);
-//                    chart3.showWindow();
 
                     init = true;
 
