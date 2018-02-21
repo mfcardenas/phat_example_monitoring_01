@@ -1,7 +1,10 @@
 # PHAT Example Monitoring Activity [01]
-Patient performs basic activities while suffering tremors in hands and neck.
- 
-While performing the activities this is monitored with acceleration sensors in both hands.
+Use of acceleration sensors to monitor basic activities in a patient suffering from tremors in both hands.
+
+The sensors are located in:
+- Chest
+- Left hand
+- Right hand.
 <table>
 <tr>
     <td>  
